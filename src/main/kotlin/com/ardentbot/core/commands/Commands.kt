@@ -26,6 +26,14 @@ annotation class MockCommand(val description: String)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class MockTranslations(vararg val translations: MockTr)
 
+
+@Retention(AnnotationRetention.RUNTIME)
+annotation class MockArguments(vararg val arguments: MockArgument)
+
+/**
+ * @param readable instructions for use - leave blank if you don't want to use it
+ */
+annotation class MockArgument(val id: String, val description: String, val readable: String = "")
 /**
  * [id] is whatever is invoked after the command name. access it like CMDNAME.[id]
  */
@@ -153,11 +161,11 @@ abstract class Command(name: String, aliases: Array<String>?, cooldown: Int?) : 
     }
 
     fun invokePrecondition(precondition: Precondition, event: GuildMessageReceivedEvent, arguments: List<String>,
-                           flags: List<Flag>, register: ArdentRegister): Boolean {
+                           flags: List<Flag>, register: ArdentRegister,quiet:Boolean = false): Boolean {
         val params = EventParams(event, this, arguments, flags, register)
         return if (precondition.condition(params)) true
         else {
-            event.channel.send(precondition.onFailure(params).joinToString(""), register)
+            if (!quiet)event.channel.send(precondition.onFailure(params).joinToString(""), register)
             false
         }
     }
